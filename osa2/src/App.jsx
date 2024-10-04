@@ -36,12 +36,7 @@ const Content = (props) => {
 }
 
 const Total = (props) => {
-  let totalExercises = 0
-
-  for (let i = 0; i < props.parts.length; i++) {
-    totalExercises += props.parts[i].exercises
-  }
-
+  const totalExercises = props.parts.reduce((sum, part) => sum + part.exercises, 0);
   return <p>Number of exercises {totalExercises}</p>
 }
 
