@@ -30,11 +30,14 @@ const PersonForm = ({ newName, newNumber, handleNameChange, handleNumberChange, 
   )
 }
 
-const Persons = ({ personsToShow }) => {
+const Persons = ({ personsToShow, deletePerson }) => {
   return (
     <div>
       {personsToShow.map(person => (
-        <p key={person.name}>{person.name} {person.number}</p>
+        <div key={person.name}>
+          <p>{person.name} {person.number}</p>
+          <button onClick={() => deletePerson(person)}>delete</button>
+        </div>
       ))}
     </div>
   )
@@ -47,11 +50,9 @@ const App = () => {
   const [filter, setFilter] = useState('')
 
   useEffect(() => {
-    console.log('effect')
     axios
       .get('http://localhost:3001/persons')
       .then(response => {
-        console.log('promise fulfilled')
         setPersons(response.data)
       })
   }, [])
@@ -61,30 +62,37 @@ const App = () => {
     if (persons.some(person => person.name === newName)) {
       alert(`${newName} is already added to the phonebook`)
     } else {
-    const personObject = {
-      name: newName,
-      number: newNumber
-    }
-    
-    axios
-    .post('http://localhost:3001/persons', personObject)
-    .then(response => {
-      setPersons(persons.concat(response.data))
+      const personObject = {
+        name: newName,
+        number: newNumber
+      }
+
+      axios
+      .post('http://localhost:3001/persons', personObject)
+      .then(response => {
+        setPersons(persons.concat(response.data))
+        setNewName('')
+        setNewNumber('')
+        setFilter('')
+      })
+
+      setPersons(persons.concat(personObject))
       setNewName('')
       setNewNumber('')
       setFilter('')
-    })
-
-    setPersons(persons.concat(personObject))
-    setNewName('')
-    setNewNumber('')
-    setFilter('')
+    }
   }
-}
+
+  const deletePerson = (person) => {
+    if (window.confirm(`Delete ${person.name}?`)) {
+      axios
+      .delete(`http://localhost:3001/persons/${person.id}`)
+      .then(setPersons(persons.filter(p => p.id !== person.id)))
+    }
+  }
 
   const personsToShow = persons.filter (person =>
     person.name.toLowerCase().includes(filter.toLowerCase()))
-
   const handleNameChange = (event) => {
     setNewName(event.target.value)
   }
@@ -113,6 +121,7 @@ const App = () => {
       <h3>Numbers</h3>
       <Persons
         personsToShow={personsToShow}
+        deletePerson={deletePerson}
       />
     </div>
   )
